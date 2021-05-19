@@ -2,13 +2,13 @@
 using namespace std;
 
 class Splay_tree{
-    public:
     int val;
     Splay_tree *left, *right, *parent;
-
+public:
     Splay_tree();
     Splay_tree(int);
     Splay_tree(int, Splay_tree*);
+    int get_val();
 
     Splay_tree* splay_predecesor(int, Splay_tree**);
     Splay_tree* splay_succesor(int, Splay_tree**);
@@ -45,6 +45,9 @@ Splay_tree::Splay_tree(int val, Splay_tree* parent){
     this->parent=parent;
     left=NULL;
     right=NULL;
+}
+Splay_tree::get_val(){
+    return val;
 }
 
 ///tree
@@ -254,6 +257,6 @@ int main(){
         cout<<"nodul nu exista"<<'\n';
 
     ///succesor si predecesor
-    cout<<v.splay_predecesor(50,&root)->val<<'\n';
-    cout<<v.splay_succesor(50,&root)->val<<'\n';
+    cout<<v.splay_predecesor(50,&root)->get_val()<<'\n';
+    cout<<v.splay_succesor(50,&root)->get_val()<<'\n';
 }
