@@ -18,8 +18,8 @@ public:
     void rotate_left(Splay_tree*);
     void rotate_right(Splay_tree*);
     Splay_tree* splay(Splay_tree*);
-    void splay_afisare(Splay_tree*);
 
+    void tree_afisare(Splay_tree*);
     Splay_tree* tree_search(int, Splay_tree*);
     Splay_tree* predecesor_down(Splay_tree*);
     Splay_tree* predecesor_up(Splay_tree*);
@@ -28,6 +28,7 @@ public:
     Splay_tree* tree_insert(int, Splay_tree*,Splay_tree**, Splay_tree*);
 
 };
+
 Splay_tree::Splay_tree(){
     val=0;
     parent=NULL;
@@ -46,7 +47,7 @@ Splay_tree::Splay_tree(int val, Splay_tree* parent){
     left=NULL;
     right=NULL;
 }
-Splay_tree::get_val(){
+int Splay_tree::get_val(){
     return val;
 }
 
@@ -98,34 +99,44 @@ Splay_tree* Splay_tree::tree_insert(int val, Splay_tree* node,Splay_tree** aux ,
     }
     return node;
 }
-void Splay_tree::splay_afisare(Splay_tree* node){
+void Splay_tree::tree_afisare(Splay_tree* node){
     if (node==NULL)
         return ;
-    splay_afisare(node->left);
+    tree_afisare(node->left);
     cout<<node->val<<" ";
-    splay_afisare(node->right);
+    tree_afisare(node->right);
 }
 
 ///splay
 void Splay_tree::rotate_right(Splay_tree* node){
-    Splay_tree *aux=NULL;
-    if(node->right!=NULL)
-        node->right->parent=node->parent;
-    aux=node->right;
-    node->right=node->parent;
-    node->right->left=aux;
-    node->parent=node->right->parent;
-    node->right->parent=node;
+    Splay_tree *aux=node->left;
+    node->left=aux->right;
+    if (aux->right!=NULL)
+        aux->right->parent = node;
+    aux->parent = node->parent;
+    if (node->parent!=NULL){
+        if (node==node->parent->left)
+            node->parent->left=aux;
+        else
+            node->parent->right=aux;
+    }
+    aux->right=node;
+    node->parent=aux;
 }
 void Splay_tree::rotate_left(Splay_tree* node){
-    Splay_tree *aux=NULL;
-    if(node->left!=NULL)
-        node->left->parent=node->parent;
-    aux=node->left;
-    node->left=node->parent;
-    node->left->right=aux;
-    node->parent=node->left->parent;
-    node->left->parent=node;
+    Splay_tree *aux=node->right;
+    node->right=aux->left;
+    if (aux->left!=NULL)
+        aux->left->parent=node;
+    aux->parent=node->parent;
+    if (node->parent!=NULL){
+        if (node==node->parent->right)
+            node->parent->right=aux;
+        else
+            node->parent->left=aux;
+    }
+    aux->left=node;
+    node->parent=aux;
 }
 Splay_tree* Splay_tree::splay(Splay_tree* node){
     if(node->parent==NULL)
@@ -134,34 +145,34 @@ Splay_tree* Splay_tree::splay(Splay_tree* node){
         if(node->parent->left==node){
             if(node->parent->parent->left==node->parent){
                 ///zig-zig step
+                rotate_right(node->parent->parent);
                 rotate_right(node->parent);
-                rotate_right(node);
             }
             else{
                 ///zig-zag step
-                rotate_right(node);
-                rotate_left(node);
+                rotate_right(node->parent);
+                rotate_left(node->parent);
             }
         }
         else{
             if(node->parent->parent->right==node->parent){
                 ///zag-zag step
+                rotate_left(node->parent->parent);
                 rotate_left(node->parent);
-                rotate_left(node);
             }
             else{
                 ///zag-zig step
-                rotate_left(node);
-                rotate_right(node);
+                rotate_left(node->parent);
+                rotate_right(node->parent);
             }
         }
     }
     if(node->parent==NULL)
         return node;
     if(node->parent->left==node)
-        rotate_right(node);
+        rotate_right(node->parent);
     else
-        rotate_left(node);
+        rotate_left(node->parent);
     return node;
 }
 Splay_tree* Splay_tree::splay_insert(int val, Splay_tree** node){
@@ -214,16 +225,20 @@ Splay_tree* Splay_tree::splay_delete(int val, Splay_tree** node){
     if(aux->left==NULL){
         aux->right->parent=NULL;
         *node=aux->right;
+        return *node;
     }
-    else{
+    if(aux->right==NULL){
         aux->left->parent=NULL;
-        Splay_tree *left_root;
-        left_root=predecesor_down(aux->left);
-        left_root=splay(left_root);
-        left_root->right=aux->right;
-        aux->right->parent=left_root;
-        *node=left_root;
+        *node=aux->left;
+        return *node;
     }
+    aux->left->parent=NULL;
+    Splay_tree *left_root;
+    left_root=predecesor_down(aux->left);
+    left_root=splay(left_root);
+    left_root->right=aux->right;
+    aux->right->parent=left_root;
+    *node=left_root;
     return *node;
 }
 
@@ -240,14 +255,15 @@ int main(){
     v.splay_insert(70,&root);
     v.splay_insert(60,&root);
     v.splay_insert(80,&root);
+    v.splay_insert(10,&root);
 
     ///afisare
-    v.splay_afisare(root);
+    v.tree_afisare(root);
     cout<<'\n';
 
     ///stergere
     v.splay_delete(60,&root);
-    v.splay_afisare(root);
+    v.tree_afisare(root);
     cout<<'\n';
 
     ///cautare
@@ -259,4 +275,5 @@ int main(){
     ///succesor si predecesor
     cout<<v.splay_predecesor(50,&root)->get_val()<<'\n';
     cout<<v.splay_succesor(50,&root)->get_val()<<'\n';
+
 }
